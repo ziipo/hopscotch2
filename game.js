@@ -7,42 +7,18 @@ const SWAP_DURATION = 200;
 const FALL_DURATION = 300;
 const REMOVE_DURATION = 300;
 
-// Calculate responsive dimensions
-function getGameDimensions() {
-    const isMobile = window.innerWidth < 768;
-    const maxWidth = window.innerWidth - 40; // 20px padding on each side
-    const maxHeight = window.innerHeight - 40;
-
-    let gameWidth, gameHeight, scale;
-
-    if (isMobile) {
-        // On mobile, fit to screen width
-        const gridWidth = GRID_SIZE * TILE_SIZE;
-        scale = Math.min(maxWidth / gridWidth, maxHeight / (GRID_SIZE * TILE_SIZE + 150));
-        gameWidth = gridWidth * scale;
-        gameHeight = (GRID_SIZE * TILE_SIZE + 200) * scale;
-    } else {
-        // On desktop, use fixed size with sidebar
-        scale = 1;
-        gameWidth = GRID_SIZE * TILE_SIZE + 200;
-        gameHeight = GRID_SIZE * TILE_SIZE + 150; // Added 50px bottom padding
-    }
-
-    return { width: gameWidth, height: gameHeight, scale: scale };
-}
-
-const dimensions = getGameDimensions();
-
-// Game configuration
+// Game configuration - fixed size, let Phaser handle scaling
 const config = {
     type: Phaser.AUTO,
-    width: dimensions.width,
-    height: dimensions.height,
+    width: GRID_SIZE * TILE_SIZE + 200,
+    height: GRID_SIZE * TILE_SIZE + 150, // Added 50px bottom padding
     parent: 'game-container',
     backgroundColor: '#2d3436',
     scale: {
         mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: GRID_SIZE * TILE_SIZE + 200,
+        height: GRID_SIZE * TILE_SIZE + 150
     },
     scene: {
         create: create,
