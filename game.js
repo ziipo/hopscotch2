@@ -162,8 +162,13 @@ function createTile(scene, col, row, colorIndex, startX, startY) {
         case 1: // Cyan - Square
             tile = scene.add.rectangle(x, y, size * 2, size * 2, color);
             break;
-        case 2: // Yellow - Triangle
-            tile = scene.add.triangle(x, y + size * 0.2, 0, -size * 1.1, -size, size * 0.9, size, size * 0.9, color);
+        case 2: // Yellow - Triangle (coordinates centered around origin)
+            // Points form an equilateral-ish triangle centered at (0,0)
+            tile = scene.add.triangle(x, y,
+                0, -size * 0.9,        // Top point
+                -size * 0.8, size * 0.7,   // Bottom left
+                size * 0.8, size * 0.7,    // Bottom right
+                color);
             break;
         case 3: // Light green - Pentagon
             tile = scene.add.star(x, y, 5, 0, size, 0, color);
