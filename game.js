@@ -9,7 +9,7 @@ const REMOVE_DURATION = 300;
 
 // Calculate canvas dimensions based on device
 const isMobile = window.innerWidth < 768;
-const canvasWidth = isMobile ? GRID_SIZE * TILE_SIZE : GRID_SIZE * TILE_SIZE + 200;
+const canvasWidth = isMobile ? GRID_SIZE * TILE_SIZE + 40 : GRID_SIZE * TILE_SIZE + 200; // +40 for 20px padding on each side
 const canvasHeight = isMobile ? GRID_SIZE * TILE_SIZE + 280 : GRID_SIZE * TILE_SIZE + 150;
 
 // Game configuration - fixed size, let Phaser handle scaling
@@ -65,9 +65,10 @@ function create() {
     if (isMobile) {
         // Mobile layout - put controls below the grid
         const gridBottom = 120 + GRID_SIZE * TILE_SIZE + 10;
+        const centerX = canvasWidth / 2; // Use full canvas width for centering
 
         // Create restart button (centered below grid)
-        const restartBtn = this.add.text(GRID_SIZE * TILE_SIZE / 2, gridBottom, 'Restart', {
+        const restartBtn = this.add.text(centerX, gridBottom, 'Restart', {
             fontSize: '20px',
             fill: '#fff',
             backgroundColor: '#e74c3c',
@@ -87,19 +88,19 @@ function create() {
         });
 
         // Instructions below restart button
-        this.add.text(GRID_SIZE * TILE_SIZE / 2, gridBottom + 60, 'Click or drag a tile to an adjacent one to swap!', {
+        this.add.text(centerX, gridBottom + 60, 'Click or drag a tile to an adjacent one to swap!', {
             fontSize: '12px',
             fill: '#dfe6e9',
             align: 'center',
-            wordWrap: { width: GRID_SIZE * TILE_SIZE - 40 }
+            wordWrap: { width: canvasWidth - 40 }
         }).setOrigin(0.5, 0);
 
         // Scoring info
-        this.add.text(GRID_SIZE * TILE_SIZE / 2, gridBottom + 100, 'Scoring: 3 tiles = 100 • 4 tiles = 200 • 5+ tiles = 400', {
+        this.add.text(centerX, gridBottom + 100, 'Scoring: 3 tiles = 100 • 4 tiles = 200 • 5+ tiles = 400', {
             fontSize: '11px',
             fill: '#dfe6e9',
             align: 'center',
-            wordWrap: { width: GRID_SIZE * TILE_SIZE - 40 }
+            wordWrap: { width: canvasWidth - 40 }
         }).setOrigin(0.5, 0);
 
     } else {
