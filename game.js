@@ -163,7 +163,7 @@ function createTile(scene, col, row, colorIndex, startX, startY) {
             tile = scene.add.rectangle(x, y, size * 2, size * 2, color);
             break;
         case 2: // Yellow - Triangle
-            tile = scene.add.triangle(x, y, 0, size * 1.3, -size * 1.15, -size * 0.65, size * 1.15, -size * 0.65, color);
+            tile = scene.add.triangle(x, y + size * 0.2, 0, -size * 1.1, -size, size * 0.9, size, size * 0.9, color);
             break;
         case 3: // Light green - Pentagon
             tile = scene.add.star(x, y, 5, 0, size, 0, color);
