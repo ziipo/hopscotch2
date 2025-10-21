@@ -7,18 +7,23 @@ const SWAP_DURATION = 200;
 const FALL_DURATION = 300;
 const REMOVE_DURATION = 300;
 
+// Calculate canvas dimensions based on device
+const isMobile = window.innerWidth < 768;
+const canvasWidth = isMobile ? GRID_SIZE * TILE_SIZE : GRID_SIZE * TILE_SIZE + 200;
+const canvasHeight = isMobile ? GRID_SIZE * TILE_SIZE + 280 : GRID_SIZE * TILE_SIZE + 150;
+
 // Game configuration - fixed size, let Phaser handle scaling
 const config = {
     type: Phaser.AUTO,
-    width: GRID_SIZE * TILE_SIZE + 200,
-    height: GRID_SIZE * TILE_SIZE + 150, // Added 50px bottom padding
+    width: canvasWidth,
+    height: canvasHeight,
     parent: 'game-container',
     backgroundColor: '#2d3436',
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: GRID_SIZE * TILE_SIZE + 200,
-        height: GRID_SIZE * TILE_SIZE + 150
+        width: canvasWidth,
+        height: canvasHeight
     },
     scene: {
         create: create,
@@ -42,6 +47,8 @@ game = new Phaser.Game(config);
  * Create function - initializes the game scene
  */
 function create() {
+    const isMobile = window.innerWidth < 768;
+
     // Add title
     this.add.text(20, 20, 'Match-3 Puzzle', {
         fontSize: '32px',
@@ -55,40 +62,82 @@ function create() {
         fill: '#fff'
     });
 
-    // Create restart button
-    const restartBtn = this.add.text(GRID_SIZE * TILE_SIZE + 40, 150, 'Restart', {
-        fontSize: '20px',
-        fill: '#fff',
-        backgroundColor: '#e74c3c',
-        padding: { x: 20, y: 10 }
-    }).setInteractive();
+    if (isMobile) {
+        // Mobile layout - put controls below the grid
+        const gridBottom = 120 + GRID_SIZE * TILE_SIZE + 10;
 
-    restartBtn.on('pointerdown', () => {
-        restartGame(this);
-    });
+        // Create restart button (centered below grid)
+        const restartBtn = this.add.text(GRID_SIZE * TILE_SIZE / 2, gridBottom, 'Restart', {
+            fontSize: '20px',
+            fill: '#fff',
+            backgroundColor: '#e74c3c',
+            padding: { x: 20, y: 10 }
+        }).setInteractive().setOrigin(0.5, 0);
 
-    restartBtn.on('pointerover', () => {
-        restartBtn.setStyle({ backgroundColor: '#c0392b' });
-    });
+        restartBtn.on('pointerdown', () => {
+            restartGame(this);
+        });
 
-    restartBtn.on('pointerout', () => {
-        restartBtn.setStyle({ backgroundColor: '#e74c3c' });
-    });
+        restartBtn.on('pointerover', () => {
+            restartBtn.setStyle({ backgroundColor: '#c0392b' });
+        });
 
-    // Add instructions
-    this.add.text(GRID_SIZE * TILE_SIZE + 20, 250, 'Click or drag\na tile to an\nadjacent one\nto swap!', {
-        fontSize: '16px',
-        fill: '#dfe6e9',
-        align: 'center',
-        lineSpacing: 8
-    });
+        restartBtn.on('pointerout', () => {
+            restartBtn.setStyle({ backgroundColor: '#e74c3c' });
+        });
 
-    this.add.text(GRID_SIZE * TILE_SIZE + 20, 380, 'Scoring:\n3 tiles = 100\n4 tiles = 200\n5+ tiles = 400', {
-        fontSize: '14px',
-        fill: '#dfe6e9',
-        align: 'left',
-        lineSpacing: 5
-    });
+        // Instructions below restart button
+        this.add.text(GRID_SIZE * TILE_SIZE / 2, gridBottom + 60, 'Click or drag a tile to an adjacent one to swap!', {
+            fontSize: '12px',
+            fill: '#dfe6e9',
+            align: 'center',
+            wordWrap: { width: GRID_SIZE * TILE_SIZE - 40 }
+        }).setOrigin(0.5, 0);
+
+        // Scoring info
+        this.add.text(GRID_SIZE * TILE_SIZE / 2, gridBottom + 100, 'Scoring: 3 tiles = 100 • 4 tiles = 200 • 5+ tiles = 400', {
+            fontSize: '11px',
+            fill: '#dfe6e9',
+            align: 'center',
+            wordWrap: { width: GRID_SIZE * TILE_SIZE - 40 }
+        }).setOrigin(0.5, 0);
+
+    } else {
+        // Desktop layout - sidebar on the right
+        const restartBtn = this.add.text(GRID_SIZE * TILE_SIZE + 40, 150, 'Restart', {
+            fontSize: '20px',
+            fill: '#fff',
+            backgroundColor: '#e74c3c',
+            padding: { x: 20, y: 10 }
+        }).setInteractive();
+
+        restartBtn.on('pointerdown', () => {
+            restartGame(this);
+        });
+
+        restartBtn.on('pointerover', () => {
+            restartBtn.setStyle({ backgroundColor: '#c0392b' });
+        });
+
+        restartBtn.on('pointerout', () => {
+            restartBtn.setStyle({ backgroundColor: '#e74c3c' });
+        });
+
+        // Add instructions
+        this.add.text(GRID_SIZE * TILE_SIZE + 20, 250, 'Click or drag\na tile to an\nadjacent one\nto swap!', {
+            fontSize: '16px',
+            fill: '#dfe6e9',
+            align: 'center',
+            lineSpacing: 8
+        });
+
+        this.add.text(GRID_SIZE * TILE_SIZE + 20, 380, 'Scoring:\n3 tiles = 100\n4 tiles = 200\n5+ tiles = 400', {
+            fontSize: '14px',
+            fill: '#dfe6e9',
+            align: 'left',
+            lineSpacing: 5
+        });
+    }
 
     // Initialize the game grid
     initializeGrid(this);
