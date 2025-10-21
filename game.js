@@ -162,13 +162,20 @@ function createTile(scene, col, row, colorIndex, startX, startY) {
         case 1: // Cyan - Square
             tile = scene.add.rectangle(x, y, size * 2, size * 2, color);
             break;
-        case 2: // Yellow - Triangle (coordinates centered around origin)
-            // Points form an equilateral-ish triangle centered at (0,0)
-            tile = scene.add.triangle(x, y,
-                0, -size * 0.9,        // Top point
-                -size * 0.8, size * 0.7,   // Bottom left
-                size * 0.8, size * 0.7,    // Bottom right
-                color);
+        case 2: // Yellow - Hourglass (two triangles forming an X shape)
+            tile = scene.add.graphics();
+            tile.fillStyle(color, 1);
+            tile.fillTriangle(
+                -size * 0.8, -size * 0.8,  // Top left
+                size * 0.8, -size * 0.8,   // Top right
+                0, 0                        // Center
+            );
+            tile.fillTriangle(
+                -size * 0.8, size * 0.8,   // Bottom left
+                size * 0.8, size * 0.8,    // Bottom right
+                0, 0                        // Center
+            );
+            tile.setPosition(x, y);
             break;
         case 3: // Light green - Pentagon
             tile = scene.add.star(x, y, 5, 0, size, 0, color);
