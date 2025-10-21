@@ -1,7 +1,8 @@
 // Match-3 Puzzle Game - Configuration and Constants
 const GRID_SIZE = 8;
 const TILE_SIZE = 70;
-const TILE_COLORS = [0xFF6B6B, 0x4ECDC4, 0xFFE66D, 0x95E1D3, 0xF38181, 0xAA96DA];
+// Colorblind-friendly palette (distinct for protanopia, deuteranopia, and tritanopia)
+const TILE_COLORS = [0x0173B2, 0xDE8F05, 0x029E73, 0xCC78BC, 0xCA9161, 0xECE133];
 const SWAP_DURATION = 200;
 const FALL_DURATION = 300;
 const REMOVE_DURATION = 300;
@@ -144,78 +145,42 @@ function wouldCreateMatch(row, col, colorIndex) {
 }
 
 /**
- * Create a tile game object with distinct shape for each color
+ * Create a tile game object
  */
 function createTile(scene, col, row, colorIndex, startX, startY) {
     const x = startX + col * TILE_SIZE + TILE_SIZE / 2;
     const y = startY + row * TILE_SIZE + TILE_SIZE / 2;
 
-    let tile;
-    const size = 28;
-    const color = TILE_COLORS[colorIndex];
-
-    // Create different shapes for each color (colorblind friendly)
-    switch (colorIndex) {
-        case 0: // Red - Circle
-            tile = scene.add.circle(x, y, size, color);
-            break;
-        case 1: // Cyan - Square
-            tile = scene.add.rectangle(x, y, size * 2, size * 2, color);
-            break;
-        case 2: // Yellow - Hourglass (two triangles forming an X shape)
-            tile = scene.add.graphics();
-            tile.fillStyle(color, 1);
-            tile.fillTriangle(
-                -size * 0.8, -size * 0.8,  // Top left
-                size * 0.8, -size * 0.8,   // Top right
-                0, 0                        // Center
-            );
-            tile.fillTriangle(
-                -size * 0.8, size * 0.8,   // Bottom left
-                size * 0.8, size * 0.8,    // Bottom right
-                0, 0                        // Center
-            );
-            tile.setPosition(x, y);
-            break;
-        case 3: // Light green - Pentagon
-            tile = scene.add.star(x, y, 5, 0, size, 0, color);
-            break;
-        case 4: // Pink - Hexagon
-            tile = scene.add.star(x, y, 6, 0, size, 0, color);
-            break;
-        case 5: // Purple - Diamond
-            tile = scene.add.star(x, y, 4, 0, size, 0, color);
-            break;
-    }
-
-    tile.setStrokeStyle(3, 0xffffff, 0.8);
-    tile.setInteractive({ draggable: true });
+    // Create circle for tile
+    const circle = scene.add.circle(x, y, 28, TILE_COLORS[colorIndex]);
+    circle.setStrokeStyle(3, 0xffffff, 0.8);
+    circle.setInteractive({ draggable: true });
 
     // Tile data
-    tile.gridRow = row;
-    tile.gridCol = col;
-    tile.colorIndex = colorIndex;
+    circle.gridRow = row;
+    circle.gridCol = col;
+    circle.colorIndex = colorIndex;
 
     // Add drag handlers
-    tile.on('dragstart', (pointer) => handleDragStart(scene, tile, pointer));
-    tile.on('drag', (pointer, dragX, dragY) => handleDrag(scene, tile, pointer, dragX, dragY));
-    tile.on('dragend', (pointer) => handleDragEnd(scene, tile, pointer));
+    circle.on('dragstart', (pointer) => handleDragStart(scene, circle, pointer));
+    circle.on('drag', (pointer, dragX, dragY) => handleDrag(scene, circle, pointer, dragX, dragY));
+    circle.on('dragend', (pointer) => handleDragEnd(scene, circle, pointer));
 
     // Add click handler (for click-to-select mode)
-    tile.on('pointerdown', () => handleTileClick(scene, tile));
+    circle.on('pointerdown', () => handleTileClick(scene, circle));
 
     // Hover effects
-    tile.on('pointerover', () => {
+    circle.on('pointerover', () => {
         if (!isProcessing) {
-            tile.setScale(1.1);
+            circle.setScale(1.1);
         }
     });
 
-    tile.on('pointerout', () => {
-        tile.setScale(1.0);
+    circle.on('pointerout', () => {
+        circle.setScale(1.0);
     });
 
-    return tile;
+    return circle;
 }
 
 /**
