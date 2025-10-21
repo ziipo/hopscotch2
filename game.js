@@ -26,6 +26,7 @@ let selectedTile = null;
 let score = 0;
 let scoreText;
 let isProcessing = false;
+let dragStartTile = null;
 
 // Initialize the game
 game = new Phaser.Game(config);
@@ -68,7 +69,7 @@ function create() {
     });
 
     // Add instructions
-    this.add.text(GRID_SIZE * TILE_SIZE + 20, 250, 'Click a tile,\nthen click an\nadjacent tile\nto swap!', {
+    this.add.text(GRID_SIZE * TILE_SIZE + 20, 250, 'Click or drag\na tile to an\nadjacent one\nto swap!', {
         fontSize: '16px',
         fill: '#dfe6e9',
         align: 'center',
@@ -143,44 +144,144 @@ function wouldCreateMatch(row, col, colorIndex) {
 }
 
 /**
- * Create a tile game object
+ * Create a tile game object with distinct shape for each color
  */
 function createTile(scene, col, row, colorIndex, startX, startY) {
     const x = startX + col * TILE_SIZE + TILE_SIZE / 2;
     const y = startY + row * TILE_SIZE + TILE_SIZE / 2;
 
-    // Create circle for tile
-    const circle = scene.add.circle(x, y, 28, TILE_COLORS[colorIndex]);
-    circle.setStrokeStyle(3, 0xffffff, 0.8);
-    circle.setInteractive();
+    let tile;
+    const size = 28;
+    const color = TILE_COLORS[colorIndex];
+
+    // Create different shapes for each color (colorblind friendly)
+    switch (colorIndex) {
+        case 0: // Red - Circle
+            tile = scene.add.circle(x, y, size, color);
+            break;
+        case 1: // Cyan - Square
+            tile = scene.add.rectangle(x, y, size * 2, size * 2, color);
+            break;
+        case 2: // Yellow - Triangle
+            tile = scene.add.triangle(x, y, 0, size * 1.3, -size * 1.15, -size * 0.65, size * 1.15, -size * 0.65, color);
+            break;
+        case 3: // Light green - Pentagon
+            tile = scene.add.star(x, y, 5, 0, size, 0, color);
+            break;
+        case 4: // Pink - Hexagon
+            tile = scene.add.star(x, y, 6, 0, size, 0, color);
+            break;
+        case 5: // Purple - Diamond
+            tile = scene.add.star(x, y, 4, 0, size, 0, color);
+            break;
+    }
+
+    tile.setStrokeStyle(3, 0xffffff, 0.8);
+    tile.setInteractive({ draggable: true });
 
     // Tile data
-    circle.gridRow = row;
-    circle.gridCol = col;
-    circle.colorIndex = colorIndex;
+    tile.gridRow = row;
+    tile.gridCol = col;
+    tile.colorIndex = colorIndex;
 
-    // Add click handler
-    circle.on('pointerdown', () => handleTileClick(scene, circle));
+    // Add drag handlers
+    tile.on('dragstart', (pointer) => handleDragStart(scene, tile, pointer));
+    tile.on('drag', (pointer, dragX, dragY) => handleDrag(scene, tile, pointer, dragX, dragY));
+    tile.on('dragend', (pointer) => handleDragEnd(scene, tile, pointer));
+
+    // Add click handler (for click-to-select mode)
+    tile.on('pointerdown', () => handleTileClick(scene, tile));
 
     // Hover effects
-    circle.on('pointerover', () => {
+    tile.on('pointerover', () => {
         if (!isProcessing) {
-            circle.setScale(1.1);
+            tile.setScale(1.1);
         }
     });
 
-    circle.on('pointerout', () => {
-        circle.setScale(1.0);
+    tile.on('pointerout', () => {
+        tile.setScale(1.0);
     });
 
-    return circle;
+    return tile;
+}
+
+/**
+ * Handle drag start
+ */
+function handleDragStart(scene, tile, pointer) {
+    if (isProcessing) return;
+    dragStartTile = tile;
+
+    // Clear click selection if dragging
+    if (selectedTile) {
+        selectedTile.setStrokeStyle(3, 0xffffff, 0.8);
+        selectedTile = null;
+    }
+}
+
+/**
+ * Handle drag movement
+ */
+function handleDrag(scene, tile, pointer, dragX, dragY) {
+    if (isProcessing || !dragStartTile) return;
+
+    // Don't actually move the tile visually during drag
+    // We'll use pointer position to determine direction
+}
+
+/**
+ * Handle drag end - check if dragged to adjacent tile
+ */
+function handleDragEnd(scene, tile, pointer) {
+    if (isProcessing || !dragStartTile) {
+        dragStartTile = null;
+        return;
+    }
+
+    // Calculate drag direction
+    const deltaX = pointer.x - tile.x;
+    const deltaY = pointer.y - tile.y;
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
+
+    // Determine if drag was significant enough (threshold)
+    const dragThreshold = TILE_SIZE / 3;
+
+    if (absDeltaX > dragThreshold || absDeltaY > dragThreshold) {
+        // Determine which direction was dominant
+        let targetTile = null;
+
+        if (absDeltaX > absDeltaY) {
+            // Horizontal drag
+            if (deltaX > 0 && tile.gridCol < GRID_SIZE - 1) {
+                targetTile = grid[tile.gridRow][tile.gridCol + 1];
+            } else if (deltaX < 0 && tile.gridCol > 0) {
+                targetTile = grid[tile.gridRow][tile.gridCol - 1];
+            }
+        } else {
+            // Vertical drag
+            if (deltaY > 0 && tile.gridRow < GRID_SIZE - 1) {
+                targetTile = grid[tile.gridRow + 1][tile.gridCol];
+            } else if (deltaY < 0 && tile.gridRow > 0) {
+                targetTile = grid[tile.gridRow - 1][tile.gridCol];
+            }
+        }
+
+        // If we found a valid adjacent tile, swap
+        if (targetTile) {
+            swapTiles(scene, tile, targetTile);
+        }
+    }
+
+    dragStartTile = null;
 }
 
 /**
  * Handle tile click events
  */
 function handleTileClick(scene, tile) {
-    if (isProcessing) return;
+    if (isProcessing || dragStartTile) return;
 
     if (!selectedTile) {
         // First tile selected
@@ -520,6 +621,7 @@ function restartGame(scene) {
     // Reset game state
     grid = [];
     selectedTile = null;
+    dragStartTile = null;
     score = 0;
     scoreText.setText('Score: 0');
     isProcessing = false;
